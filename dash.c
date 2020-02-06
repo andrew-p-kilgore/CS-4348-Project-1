@@ -22,14 +22,15 @@ int main(int argc, char** argv) {
 setenv("PATH","/bin",1);
 
 char* str = NULL;
-size_t len = 500;
-char* args[1000];
-char* args2[1000];
+size_t len = 5000;
+char* args[10000];
+char* args2[10000];
 int i = 0;
 int j = 0;
 int index = 0;
 pid_t pid = getpid();
 pid_t const parent = getpid();
+int ampersand = 0;
 int status;
 FILE *fp;
 char* filename;
@@ -50,9 +51,11 @@ while(pid == parent){
 while(getline(&str, &len, fp) != -1){
 char temp[len];
 memset(args,0,sizeof(args));
+memset(args2,0,sizeof(args2));
 strcpy(temp,str); //Copy the line into a temp char array (for strtok)
 str = strtok(temp,"\n"); //Gets rid of the end of line character at the end
-strcpy(str,temp); //Copies the temp array into str pointer
+if(strcmp(temp,"\n") != 0)
+	strcpy(str,temp); //Copies the temp array into str pointer
 i = 0;
 str = strtok(temp," "); //Gets the first token out of the line
 while(str != NULL){ //This loop handles the rest of the tokens
@@ -61,16 +64,19 @@ str = strtok(NULL," ");
 i++;
 }
 
+do{
 index = 0;
 i = 0;
-
+ampersand = 0;
+memset(args2,0,sizeof(args2));
 while(args[i] != NULL) {
 if(strcmp(args[i],"&") == 0){
 	index = i;
+	ampersand = 1;
 	break;
 	}
-i++;
-//if(args[i] == NULL) break;
+else
+	i++;
 }
 
 if(strcmp(args[index],"&") == 0) {
@@ -93,7 +99,7 @@ if(strcmp(args[index],"&") == 0) {
 		//while(wait(&status) != pid);
 
 }
-
+}while(ampersand == 1);// end of do while loop
 if(strcmp(args[0],"cd") == 0){
 	if(args[1] != NULL && args[2] == NULL)
 		chdir(args[1]);
@@ -133,7 +139,9 @@ if( strcmp(args[0],"exit") != 0)  {
 	if( strcmp(args[0],"cd") != 0 ) {
 		if( strcmp(args[0],"path") != 0 ) {
 			if( (pid = fork()) == 0 ) {
-				execvp(args[0],args); //This executes the commands,  assuming the path is set correctly
+				if(args[0] != NULL){
+					execvp(args[0],args); //This executes the commands,  assuming the path is set correctly
+					}
 			}
 			else
 				while(wait(&status) != pid);
