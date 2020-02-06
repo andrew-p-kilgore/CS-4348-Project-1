@@ -28,7 +28,8 @@ char* args2[1000];
 int i = 0;
 int j = 0;
 int index = 0;
-pid_t pid;
+pid_t pid = getpid();
+pid_t const parent = getpid();
 int status;
 FILE *fp;
 char* filename;
@@ -45,7 +46,7 @@ else{
 	printf("dash> "); //Display shell prompt
 }
 
-
+while(pid == parent){
 while(getline(&str, &len, fp) != -1){
 char temp[len];
 memset(args,0,sizeof(args));
@@ -65,27 +66,31 @@ i = 0;
 
 while(args[i] != NULL) {
 if(strcmp(args[i],"&") == 0){
+	index = i;
 	break;
 	}
 i++;
+//if(args[i] == NULL) break;
 }
-if(strcmp(args[i],"&") == 0) {
-	args[i] = NULL;
-	while(args[i+1] != NULL){
-	args2[j] = args[i+1];
-	args[i+1] = NULL;
-	i++;
+
+if(strcmp(args[index],"&") == 0) {
+	args[index] = NULL;
+	while(args[index+1] != NULL){
+	args2[j] = args[index+1];
+	args[index+1] = NULL;
+	index++;
 	j++;
 	}
 	if( (pid = fork()) == 0){
 		i = 0;
+		memset(args,0,sizeof(args));
 		while(args2[i] != NULL) {
 		args[i] = args2[i];
-
+		i++;
 		}
 	}
-	else
-		while(wait(&status) != pid);
+	else;
+		//while(wait(&status) != pid);
 
 }
 
@@ -142,9 +147,14 @@ if( filename != NULL ) {
 }
 
 if(argc != 2){
+	if(getpid() != parent)
+		exit(0);
+		//printf("Process ID: %d\n",getpid());
 	printf("dash> "); //Display the shell prompt
 }
-}//endwhile
 
+}//end getline's while
+
+}
 return(0);
 }
