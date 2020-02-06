@@ -51,7 +51,6 @@ while(pid == parent){
 while(getline(&str, &len, fp) != -1){
 char temp[len];
 memset(args,0,sizeof(args));
-memset(args2,0,sizeof(args2));
 strcpy(temp,str); //Copy the line into a temp char array (for strtok)
 str = strtok(temp,"\n"); //Gets rid of the end of line character at the end
 if(strcmp(temp,"\n") != 0)
@@ -63,11 +62,11 @@ args[i] = str;
 str = strtok(NULL," ");
 i++;
 }
-
 do{
 index = 0;
 i = 0;
 ampersand = 0;
+j = 0;
 memset(args2,0,sizeof(args2));
 while(args[i] != NULL) {
 if(strcmp(args[i],"&") == 0){
@@ -89,17 +88,17 @@ if(strcmp(args[index],"&") == 0) {
 	}
 	if( (pid = fork()) == 0){
 		i = 0;
-		memset(args,0,sizeof(args));
 		while(args2[i] != NULL) {
 		args[i] = args2[i];
 		i++;
 		}
 	}
-	else;
-		//while(wait(&status) != pid);
+	else
+		while(wait(&status) != pid);
 
 }
 }while(ampersand == 1);// end of do while loop
+
 if(strcmp(args[0],"cd") == 0){
 	if(args[1] != NULL && args[2] == NULL)
 		chdir(args[1]);
@@ -139,9 +138,8 @@ if( strcmp(args[0],"exit") != 0)  {
 	if( strcmp(args[0],"cd") != 0 ) {
 		if( strcmp(args[0],"path") != 0 ) {
 			if( (pid = fork()) == 0 ) {
-				if(args[0] != NULL){
-					execvp(args[0],args); //This executes the commands,  assuming the path is set correctly
-					}
+				execvp(args[0],args); //This executes the commands,  assuming the path is set correctly
+					
 			}
 			else
 				while(wait(&status) != pid);
